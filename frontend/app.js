@@ -206,7 +206,7 @@ async function loadStudentClearance() {
 
     if (clearedAll && data.slip_token) {
       els.slipBox.classList.remove("hidden");
-      els.slipToken.textContent = data.slip_token;
+      els.slipToken.textContent = data.slip_token;      renderSlipQr(data.slip_token);
     } else {
       els.slipBox.classList.add("hidden");
     }
@@ -271,16 +271,25 @@ els.staffActionForm.addEventListener("submit", async (e) => {
   }
 });
 
-// ---------- Admin: report preview ----------
+// ---------- Admin: report preview + download ----------
+let currentReport = { format: "", text: "" };
+const downloadBtn = document.getElementById("downloadReportBtn");
+
 document.querySelectorAll("[data-format]").forEach((btn) => {
   btn.addEventListener("click", async () => {
     const format = btn.getAttribute("data-format");
+    downloadBtn.classList.add("hidden");
     try {
       const output = await apiRequest(
         `/api/reports/registrar?format=${encodeURIComponent(format)}`
       );
-      els.reportPreview.textContent =
+      const text =
         typeof output === "string" ? output : JSON.stringify(output, null, 2);
+
+      els.reportPreview.textContent = text;
+      currentReport = { format, text };
+      downloadBtn.textContent = `Download ${format.toUpperCase()}`;
+      downloadBtn.classList.remove("hidden");
     } catch (err) {
       if (err.message === "Session expired") return;
       els.reportPreview.textContent = `Error: ${err.message}`;
@@ -288,7 +297,28 @@ document.querySelectorAll("[data-format]").forEach((btn) => {
   });
 });
 
-// ---------- Log out ----------
+downloadBtn.addEventListener("click", () => {
+  if (!currentReport.text) return;
+
+  const types = {
+    json: "application/json",
+    csv: "text/csv",
+    xml: "application/xml",
+  };
+  const blob = new Blob([currentReport.text], {
+    type: types[currentReport.format] || "text/plain",
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `clearance_report.${currentReport.format}`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+
+});
 els.logoutBtn.addEventListener("click", () => {
   clearSession();
   renderRoleView();
@@ -311,3 +341,25 @@ actionSelect.addEventListener("change", syncReasonField);
 // form.reset() puts the dropdown back to CLEARED, so refresh the field too
 els.staffActionForm.addEventListener("reset", () => setTimeout(syncReasonField, 0));
 syncReasonField();
+// ---------- Clearance slip: QR code + print ----------
+function renderSlipQr(token) {
+  const target = document.getElementById("qrTarget");
+  target.innerHTML = ""; // clear any previous QR (no API data is inserted here)
+
+  if (typeof QRCode === "undefined") {
+    // Library did not load (offline?). The short code below still works.
+    target.textContent = "QR unavailable. Use the short code below.";
+    return;
+  }
+
+  new QRCode(target, {
+    text: token,
+    width: 160,
+    height: 160,
+    correctLevel: QRCode.CorrectLevel.M,
+  });
+}
+
+document
+  .getElementById("printSlipBtn")
+  .addEventListener("click", () => window.print());

@@ -935,3 +935,44 @@ label select {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* =========================================================
+   QR SLIP & REPORT DOWNLOAD
+   ========================================================= */
+.qr-canvas {
+  display: inline-block;
+  padding: 0.6rem;
+  margin: 0.6rem 0;
+  background: #ffffff;
+  border: 1px solid #d7e4dc;
+  border-radius: 10px;
+}
+
+.qr-canvas img {
+  display: block;
+}
+
+.btn-download {
+  margin-top: 0.75rem;
+  padding: 0.55rem 1.1rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--emerald-rich);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-download:hover {
+  background: var(--emerald-deep);
+}
+
+@media print {
+  .topbar,
+  .btn-download {
+    display: none !important;
+  }
+}

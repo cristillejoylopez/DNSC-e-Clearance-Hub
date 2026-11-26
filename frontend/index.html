@@ -203,11 +203,14 @@
           </table>
         </div>
 
-        <div id="slipBox" class="slip-box hidden">
-          <h3>Clearance Slip</h3>
-          <p id="slipToken" class="slip-code"></p>
-          <div id="qrTarget" class="qr-box">QR / Verification Code Ready</div>
-        </div>
+             <div id="slipBox" class="slip-box hidden">
+       <h3>Clearance Slip</h3>
+       <p class="muted">Show this QR code or the short code to any office to verify your clearance.</p>
+       <div id="qrTarget" class="qr-canvas"></div>
+       <p id="slipToken" class="slip-code"></p>
+       <button id="printSlipBtn" type="button" class="btn-download">Print Slip</button>
+     </div>
+
       </section>
 
       <!-- Office Staff View -->
@@ -280,10 +283,10 @@
             </div>
           </div>
 
-          <pre id="reportPreview" class="code-box">Select a format to load report data.</pre>
+          <pre id="reportPreview" class="code-box">Select a format to load report data.</pre>       <button id="downloadReportBtn" type="button" class="btn-download hidden">Download</button>
         </div>
       </section>
-      
+
       <!-- Admin / Registrar View -->
       <section id="adminSection" class="card hidden">
         <h2>Registrar Reports</h2>
@@ -298,6 +301,7 @@
     </div>
   </main>
 
-  <script src="app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
