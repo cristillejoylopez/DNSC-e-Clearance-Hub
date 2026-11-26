@@ -18,6 +18,7 @@ const els = {
   roleBadge: document.getElementById("roleBadge"),
   logoutBtn: document.getElementById("logoutBtn"),
   studentSection: document.getElementById("studentSection"),
+  studentMessage: document.getElementById("studentMessage"),
   studentMeta: document.getElementById("studentMeta"),
   overallStatus: document.getElementById("overallStatus"),
   deadlineInfo: document.getElementById("deadlineInfo"),
@@ -32,7 +33,7 @@ const els = {
   reportPreview: document.getElementById("reportPreview"),
 };
 
-// Show/hide password toggle (eye icon)
+// ---------- Show/hide password (eye icon) ----------
 els.togglePasswordBtn.addEventListener("click", () => {
   const isPassword = els.passwordInput.type === "password";
   els.passwordInput.type = isPassword ? "text" : "password";
@@ -49,7 +50,7 @@ els.togglePasswordBtn.addEventListener("click", () => {
   els.togglePasswordBtn.title = label;
 });
 
-// Quick role pills focus username input with sample placeholder hints
+// ---------- Quick role pills ----------
 document.querySelectorAll("[data-preset]").forEach((btn) => {
   btn.addEventListener("click", () => {
     const preset = btn.getAttribute("data-preset");
@@ -63,35 +64,7 @@ document.querySelectorAll("[data-preset]").forEach((btn) => {
   });
 });
 
-async function apiRequest(path, options = {}) {
-  const headers = {
-    "Content-Type": "application/json",
-    ...(options.headers || {}),
-  };
-  if (state.token) {
-    headers.Authorization = `Bearer ${state.token}`;
-  }
-
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-  });
-
-  const contentType = res.headers.get("content-type") || "";
-  const data = contentType.includes("application/json")
-    ? await res.json()
-    : await res.text();
-
-  if (!res.ok) {
-    const msg =
-      (data && data.detail) ||
-      (data && data.message) ||
-      `Request failed (${res.status})`;
-    throw new Error(msg);
-  }
-  return data;
-}
-
+// ---------- Alerts ----------
 function showAlert(el, message, isOk = false) {
   el.textContent = message;
   el.classList.toggle("ok", isOk);
@@ -102,11 +75,71 @@ function hideAlert(el) {
   el.classList.add("hidden");
 }
 
+// ---------- Session handling ----------
+function clearSession() {
+  sessionStorage.clear();
+  state.token = "";
+  state.role = "";
+  state.user = "";
+}
+
+// Called when the server says our token is invalid or expired (HTTP 401)
+function handleExpiredSession() {
+  clearSession();
+  renderRoleView();
+  showAlert(els.authMessage, "Your session has expired. Please log in again.");
+}
+
+// ---------- API helper (the ONLY way this page talks to the Hub) ----------
+async function apiRequest(path, options = {}) {
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
+  };
+  if (state.token) {
+    headers.Authorization = `Bearer ${state.token}`;
+  }
+
+  let res;
+  try {
+    res = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+  } catch (networkErr) {
+    // Server is off, wrong address, or blocked by CORS
+    throw new Error("Cannot reach the server. Please try again later.");
+  }
+
+  const contentType = res.headers.get("content-type") || "";
+  let data;
+  try {
+    data = contentType.includes("application/json")
+      ? await res.json()
+      : await res.text();
+  } catch (parseErr) {
+    throw new Error("The server sent an unreadable response.");
+  }
+
+  if (!res.ok) {
+    // 401 on any page except the login request means the token is no longer valid
+    if (res.status === 401 && state.token && path !== "/api/auth/login") {
+      handleExpiredSession();
+      throw new Error("Session expired");
+    }
+    const msg =
+      (data && data.detail) ||
+      (data && data.message) ||
+      `Request failed (${res.status})`;
+    throw new Error(typeof msg === "string" ? msg : "Request failed");
+  }
+  return data;
+}
+
+// ---------- Which screen to show ----------
 function renderRoleView() {
   els.studentSection.classList.add("hidden");
   els.staffSection.classList.add("hidden");
   els.adminSection.classList.add("hidden");
   hideAlert(els.authMessage);
+  hideAlert(els.studentMessage);
 
   if (!state.token || !state.role) {
     els.loginSection.classList.remove("hidden");
@@ -131,7 +164,29 @@ function renderRoleView() {
   }
 }
 
+// Builds one table row safely: textContent never runs HTML or scripts
+function buildOfficeRow(item) {
+  const tr = document.createElement("tr");
+  const isCleared = item.status === "CLEARED";
+
+  const tdOffice = document.createElement("td");
+  tdOffice.textContent = item.office;
+
+  const tdStatus = document.createElement("td");
+  const pill = document.createElement("span");
+  pill.className = `status-pill ${isCleared ? "status-cleared" : "status-hold"}`;
+  pill.textContent = item.status;
+  tdStatus.appendChild(pill);
+
+  const tdRemarks = document.createElement("td");
+  tdRemarks.textContent = item.reason || "-";
+
+  tr.append(tdOffice, tdStatus, tdRemarks);
+  return tr;
+}
+
 async function loadStudentClearance() {
+  hideAlert(els.studentMessage);
   try {
     const data = await apiRequest("/api/clearance/me");
     els.studentMeta.textContent = `${data.name || state.user} — ${data.program || ""}`;
@@ -144,16 +199,9 @@ async function loadStudentClearance() {
       ? `Clearance Deadline: ${data.deadline}`
       : "Clearance deadline will load from the Hub API.";
 
-    els.clearanceTableBody.innerHTML = "";
+    els.clearanceTableBody.innerHTML = ""; // empty the table (no API data here)
     (data.offices || []).forEach((item) => {
-      const tr = document.createElement("tr");
-      const isCleared = item.status === "CLEARED";
-      tr.innerHTML = `
-        <td>${item.office}</td>
-        <td><span class="status-pill ${isCleared ? "status-cleared" : "status-hold"}">${item.status}</span></td>
-        <td>${item.reason || "-"}</td>
-      `;
-      els.clearanceTableBody.appendChild(tr);
+      els.clearanceTableBody.appendChild(buildOfficeRow(item));
     });
 
     if (clearedAll && data.slip_token) {
@@ -163,10 +211,12 @@ async function loadStudentClearance() {
       els.slipBox.classList.add("hidden");
     }
   } catch (err) {
-    showAlert(els.authMessage, `Could not load clearance: ${err.message}`);
+    if (err.message === "Session expired") return; // already handled
+    showAlert(els.studentMessage, `Could not load clearance: ${err.message}`);
   }
 }
 
+// ---------- Login ----------
 els.loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   hideAlert(els.authMessage);
@@ -194,6 +244,7 @@ els.loginForm.addEventListener("submit", async (e) => {
   }
 });
 
+// ---------- Staff: sign off / hold ----------
 els.staffActionForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   hideAlert(els.staffMessage);
@@ -215,10 +266,12 @@ els.staffActionForm.addEventListener("submit", async (e) => {
     showAlert(els.staffMessage, `Saved ${status} for ${student_id}.`, true);
     els.staffActionForm.reset();
   } catch (err) {
+    if (err.message === "Session expired") return;
     showAlert(els.staffMessage, err.message);
   }
 });
 
+// ---------- Admin: report preview ----------
 document.querySelectorAll("[data-format]").forEach((btn) => {
   btn.addEventListener("click", async () => {
     const format = btn.getAttribute("data-format");
@@ -229,16 +282,15 @@ document.querySelectorAll("[data-format]").forEach((btn) => {
       els.reportPreview.textContent =
         typeof output === "string" ? output : JSON.stringify(output, null, 2);
     } catch (err) {
+      if (err.message === "Session expired") return;
       els.reportPreview.textContent = `Error: ${err.message}`;
     }
   });
 });
 
+// ---------- Log out ----------
 els.logoutBtn.addEventListener("click", () => {
-  sessionStorage.clear();
-  state.token = "";
-  state.role = "";
-  state.user = "";
+  clearSession();
   renderRoleView();
 });
 
