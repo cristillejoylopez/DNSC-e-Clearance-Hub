@@ -295,3 +295,19 @@ els.logoutBtn.addEventListener("click", () => {
 });
 
 renderRoleView();
+// ---------- Staff form: reason is required only for HOLD ----------
+const actionSelect = document.getElementById("clearanceAction");
+const reasonInput = document.getElementById("clearanceReason");
+
+function syncReasonField() {
+  const isHold = actionSelect.value === "HOLD";
+  reasonInput.required = isHold;
+  reasonInput.placeholder = isHold
+    ? "Reason is required for a HOLD"
+    : "Optional note";
+}
+
+actionSelect.addEventListener("change", syncReasonField);
+// form.reset() puts the dropdown back to CLEARED, so refresh the field too
+els.staffActionForm.addEventListener("reset", () => setTimeout(syncReasonField, 0));
+syncReasonField();

@@ -829,3 +829,109 @@ label select {
 
   }
 }
+
+/* =========================================================
+   STAFF & ADMIN VIEWS
+   ========================================================= */
+.role-panel {
+  display: grid;
+  gap: 1.25rem;
+}
+
+/* Green banner (same gradient as the login hero) */
+.panel-banner {
+  padding: 1.5rem 1.75rem;
+  border-radius: 16px;
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 85% 20%, rgba(52, 211, 153, 0.35) 0%, transparent 55%),
+    linear-gradient(150deg, #059669 0%, #047857 50%, #064e3b 100%);
+  box-shadow: 0 10px 26px rgba(6, 78, 59, 0.2);
+}
+
+.panel-kicker {
+  display: inline-block;
+  padding: 0.22rem 0.75rem;
+  margin-bottom: 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ecfdf5;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+}
+
+
+.panel-banner h2 {
+  font-family: var(--font-display);
+  margin: 0;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+.panel-banner p {
+  margin: 0.3rem 0 0;
+  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Form polish */
+.role-panel label input,
+.role-panel label select {
+  font-family: var(--font-body);
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.role-panel label input:focus,
+.role-panel label select:focus {
+  outline: none;
+  border-color: var(--emerald-rich);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+}
+
+.form-actions .btn-primary-dark {
+
+  max-width: 240px;
+}
+
+/* Admin report format cards */
+.format-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.9rem;
+  margin: 1rem 0;
+}
+
+.format-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
+  background: #f7fbf9;
+  border: 1px solid #d7e4dc;
+  border-left: 4px solid var(--emerald-vibrant);
+  border-radius: 12px;
+}
+
+.format-card strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--emerald-deep);
+}
+
+.format-card span {
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+  margin-bottom: 0.4rem;
+}
+
+
+.code-box {
+  min-height: 120px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

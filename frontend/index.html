@@ -211,34 +211,79 @@
       </section>
 
       <!-- Office Staff View -->
-      <section id="staffSection" class="card hidden">
-        <h2>Office Clearance — Sign Off / HOLD</h2>
-        <p id="staffOfficeInfo" class="muted"></p>
+           <!-- Office Staff View -->
+      <section id="staffSection" class="role-panel hidden">
+        <div class="panel-banner">
+          <span class="panel-kicker">Office Staff</span>
+          <h2>Clearance Sign-Off</h2>
+          <p id="staffOfficeInfo"></p>
+        </div>
 
-        <form id="staffActionForm" class="grid-form">
-          <label>
-            <span>Student ID</span>
-            <input type="text" id="targetStudentId" required placeholder="e.g. 2024-00123" />
-          </label>
-          <label>
-            <span>Action</span>
-            <select id="clearanceAction">
-              <option value="CLEARED">Sign Off (CLEARED)</option>
-              <option value="HOLD">Put on HOLD</option>
-            </select>
-          </label>
-          <label class="full-span">
+        <div class="card">
+          <h2>Update a student's status</h2>
+          <p class="muted">Enter the Student ID, choose an action, then save.</p>
 
-            <span>Reason / Note</span>
-            <input type="text" id="clearanceReason" placeholder="Required if putting on HOLD" />
-          </label>
-          <div class="full-span">
-            <button type="submit" class="btn-primary-dark">Save Status</button>
-          </div>
-        </form>
-        <div id="staffMessage" class="alert hidden" role="status"></div>
+          <form id="staffActionForm" class="grid-form">
+            <label>
+              <span>Student ID</span>
+              <input type="text" id="targetStudentId" required placeholder="e.g. 2024-00123" />
+            </label>
+            <label>
+              <span>Action</span>
+              <select id="clearanceAction">
+                <option value="CLEARED">Sign Off (CLEARED)</option>
+                <option value="HOLD">Put on HOLD</option>
+              </select>
+            </label>
+            <label class="full-span">
+              <span>Reason / Note</span>
+              <input type="text" id="clearanceReason" placeholder="Optional note" />
+            </label>
+            <div class="full-span form-actions">
+              <button type="submit" class="btn-primary-dark">Save Status</button>
+            </div>
+          </form>
+
+
+          <div id="staffMessage" class="alert hidden" role="status"></div>
+        </div>
       </section>
 
+      <!-- Admin / Registrar View -->
+      <section id="adminSection" class="role-panel hidden">
+        <div class="panel-banner">
+          <span class="panel-kicker">Registrar / Admin</span>
+          <h2>Registrar Reports</h2>
+          <p>Export clearance reports from the Hub API.</p>
+        </div>
+
+        <div class="card">
+          <h2>Choose a report format</h2>
+          <p class="muted">Select a format to load the report below.</p>
+
+          <div class="format-grid">
+            <div class="format-card">
+              <strong>JSON</strong>
+              <span>For apps and APIs</span>
+              <button type="button" class="pill-btn" data-format="json">Load JSON</button>
+            </div>
+            <div class="format-card">
+              <strong>CSV</strong>
+              <span>For Excel and Sheets</span>
+              <button type="button" class="pill-btn" data-format="csv">Load CSV</button>
+            </div>
+            <div class="format-card">
+              <strong>XML</strong>
+              <span>For office systems</span>
+              <button type="button" class="pill-btn" data-format="xml">Load XML</button>
+
+            </div>
+          </div>
+
+          <pre id="reportPreview" class="code-box">Select a format to load report data.</pre>
+        </div>
+      </section>
+      
       <!-- Admin / Registrar View -->
       <section id="adminSection" class="card hidden">
         <h2>Registrar Reports</h2>
