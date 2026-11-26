@@ -362,4 +362,4 @@ function renderSlipQr(token) {
 
 document
   .getElementById("printSlipBtn")
-  .addEventListener("click", () => window.print());
+  .addEventListener("click", () => window.print()); 
